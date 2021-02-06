@@ -1,0 +1,41 @@
+.front {
+  font-family: 'Oswald', sans-serif;
+  font-size: 10rem;
+}
+
+.cards-title {
+  background: linear-gradient(90deg, #d600f9 0%, #ff3434 52%, #ffa800 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
+  position: absolute;
+  top: 50%;
+  left: 35%;
+  transform: translate(-50%, -50%);
+}
+
+.cards-back {
+  position: absolute;
+  color: #242424;
+  transform: translate(-50%, -50%);
+}
+
+.front-card {
+  position: absolute;
+  transform-origin: 50% 100%;
+  width: 300px;
+  border-radius: 20px;
+  left: 75%;
+  top: 50%;
+  box-shadow: -5px 5px 40px 0px black;
+}
+
+.front-card-1 {
+  transform: translate(-50%, -50%) rotate(-20deg);
+}
+
+.front-card-2 {
+  transform: translate(-50%, -50%) rotate(20deg);
+}
+/*# sourceMappingURL=home.css.map */
