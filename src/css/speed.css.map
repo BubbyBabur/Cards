@@ -1,0 +1,9 @@
+{
+    "version": 3,
+    "mappings": "AAAA,AAAA,WAAW,CAAC;EACR,QAAQ,EAAE,QAAQ;EAClB,SAAS,EAAE,qBAAoB;CAClC;;AAED,AAAA,oBAAoB,CAAC;EACjB,UAAU,EAAE,sBAAsB;EAClC,MAAM,EAAE,KAAK,CAAC,GAAG,CAAC,OAAiB;CACtC",
+    "sources": [
+        "../sass/speed.scss"
+    ],
+    "names": [],
+    "file": "speed.css"
+}

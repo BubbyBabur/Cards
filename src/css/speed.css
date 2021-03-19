@@ -1,0 +1,10 @@
+.speed-card {
+  position: absolute;
+  transform: translate(-50%, -50%);
+}
+
+.speed-card-selected {
+  box-shadow: 5px 5px 20px 5px black;
+  border: solid 3px #ff3434;
+}
+/*# sourceMappingURL=speed.css.map */

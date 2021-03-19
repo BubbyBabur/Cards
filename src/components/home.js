@@ -23,7 +23,7 @@ function HomeFront() {
                 <div className="cards-back" style={{
                     top: `calc(50% - ${225 - i * 150}px)`,
                     left: `calc(35% - ${150 - i * 100}px)`
-                }}>
+                }} key={i} >
                     CARDS
                 </div>
             ))}
