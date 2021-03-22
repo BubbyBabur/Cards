@@ -19,17 +19,58 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// (async () => {
-//     console.log((await db.collection("Cards").get()).docs.map(a => a.data()));
-// })();
 
-export function Speed() {
+export function Speed(props) {
+
+    let code = (props.location.search.replace(/\?/g,''));
+    if(code.length < 1) {
+        return Selector(props);
+    }
     return (
         <div>
             <Header />
-            <Board />
+            <Board code={code} />
         </div>
     )
+}
+
+function Selector(props) {
+
+    const [val, setVal] = useState("");
+    const [loading, setLoading] = useState(false);
+
+    let a = <StupidReactInputHolder setVal={setVal} />
+    
+    if(loading) {
+        return (
+            <div>
+                <Header />
+                <div className="speed-reg">Loading ya poop!</div>
+            </div>
+        )
+    }
+    return (
+        <div>
+            <Header />
+            {a}
+            <button onClick={() => {
+                console.log(val);
+                window.location.href = window.location.href.replace(/\?/g, '') + "?" + val;
+            }}>JOIN</button>
+            <button onClick={async () => {
+                setLoading(true);
+                const id = await createGame();
+                window.location.href = window.location.href.replace(/\?/g, '') + "?" + id;
+            }}>CREATE</button>
+        </div>
+    )
+}
+
+function StupidReactInputHolder({setVal}) {
+
+    return <input onChange={(event) => {
+        setVal(event.target.value);
+    }} />
 }
 
 class AbstractCard {
@@ -156,8 +197,11 @@ async function createGame() {
     let deck = new Deck();
     let data = {
         TYPE: "SPEED",
-        DECK: deck.toString(),
-        DOUBLES: true
+        DECK0: new Deck().toString(),
+        DECK1: new Deck().toString(),
+        DOUBLES: true,
+        JOINED0: false,
+        JOINED1: false
     }
 
     const doc = await db.collection('Cards').add(data);
@@ -172,43 +216,68 @@ async function createGame() {
         await doc.collection('MOVES').add({
             TYPE: "STACKDRAW",
             STACK: p,
+            CARD: new Deck().drawTop().toNumString(),
             TIMESTAMP: Date.now()
         })
     }
 
-    return true;
+    return doc.id;
 }
 
-// createGame();
-
-function Board() {
+function Board({code}) {
 
     const [boarddata, setboarddata] = useState({ ready: false });
     const [moves, setmoves] = useState([]);
     const [selectedcard, setselectedcard] = useState(-1);
+    const [connected, setconnected] = useState({PLAYER: 0, CONNECTED: false});
 
-    const deck = new Deck(boarddata.DECK);
+    const PLAYER = connected.PLAYER;
+    const [bfruh, setbfruh] = useState(false);
+
+    const gameid = code;
+    
+    // const deck = new Deck(boarddata.DECK);
+    const decks = [new Deck(boarddata.DECK0), new Deck(boarddata.DECK1)];
 
     const hands = [new Stack(), new Stack()];
     const mids =  [new Stack(), new Stack()]
 
-    const gameid = "Ii1WlqJeUz617iDOCsLC";
+    useEffect(() => {
+       
+        db.collection('Cards').doc(gameid).get().then(async (data) => {
+            if (!data.exists) setbfruh(true);
 
-    for(const move of moves) {
-        if (move.TYPE === "DRAW") {
-            hands[move.PLAYER].addBottom(deck.drawTop());
-        } else if (move.TYPE === "STACKDRAW") {
-            if (!deck.empty()) mids[move.STACK].addTop(deck.drawTop());
-        } else if (move.TYPE === "MOVE") {
-            mids[move.STACK].addTop(hands[move.PLAYER].peek(move.CARD));
-            if(!deck.empty()) hands[move.PLAYER].replace(move.CARD, deck.drawTop());
-        } else if(move.TYPE === "FLIP") {
-            mids[0].addTop(AbstractCard.parseStr(move.CARD1));
-            mids[1].addTop(AbstractCard.parseStr(move.CARD2));
-        }
-    }
+            console.log("RESETTING");
+            // console.log(data.data());
+            let p = 0;
+            if (!data.data().JOINED0) {
+                p = 0;
+                db.collection('Cards').doc(gameid).update({
+                    JOINED0: true
+                })
+            } else if (!data.data().JOINED1) {
+                p = 1;
+                db.collection('Cards').doc(gameid).update({
+                    JOINED1: true
+                })
+            } else {
+                p=2;
+            }
 
-    useEffect(() =>{
+            console.log("GOOD!");
+            setconnected({
+                CONNECTED: true,
+                PLAYER: p
+            });
+            console.log("GOOD PAST!");
+            console.log(connected);
+        }).catch((err) => {
+            setbfruh(true);
+        })
+
+    }, []);
+
+    useEffect(() => {
 
         let unsub = db.collection('Cards').doc(gameid).onSnapshot((data) => {
             setboarddata({
@@ -219,6 +288,7 @@ function Board() {
         });
 
         return () => unsub();
+    
     }, []);
 
     useEffect(() => {
@@ -226,26 +296,58 @@ function Board() {
         let unsub = db.collection('Cards').doc(gameid).collection('MOVES').onSnapshot((data) => {
             let moves = data.docs.map(doc => doc.data());
             moves = moves.sort((a, b) => a.TIMESTAMP - b.TIMESTAMP);
+            console.log("#2")
             setmoves(moves);
         });
 
         return () => unsub();
     }, []);
 
-    useEffect(() => {
+    if(bfruh) {
+        return <div className="speed-reg">What have you done child <br /> The game ID you entered wasn't found!</div>
+    }
 
-        let unsub = db.collection('Cards').doc(gameid).onSnapshot((data) => {
-            setboarddata({
-                ready: true,
-                ...data.data()
-            });
-            console.log("READY!")
-        });
+    if(!connected.CONNECTED) {
+        return <div className="speed-reg">Patience young padawan</div>
+    }
 
-        return () => unsub();
-    }, []);
+    console.log( connected);
 
-    const PLAYER = 0;
+    let gamewon = false;
+    let winner = -1;
+
+    let count = 0;
+    for(const move of moves) {
+
+        if (move.TYPE === "DRAW") {
+            hands[move.PLAYER].addBottom(decks[move.PLAYER].drawTop());
+        } else if (move.TYPE === "STACKDRAW") {
+            mids[move.STACK].addTop(AbstractCard.parseStr(move.CARD));
+        } else if (move.TYPE === "MOVE") {
+            mids[move.STACK].addTop(hands[move.PLAYER].peek(move.CARD));
+            if (!decks[move.PLAYER].empty()) hands[move.PLAYER].replace(move.CARD, decks[move.PLAYER].drawTop());
+            else hands[move.PLAYER].remove(move.CARD);
+        } else if(move.TYPE === "FLIP") {
+            mids[0].addTop(AbstractCard.parseStr(move.CARD1));
+            mids[1].addTop(AbstractCard.parseStr(move.CARD2));
+        }
+
+        count++;
+
+        if(count < 12) continue;
+
+        for(let i = 0; i < 2; i++) {
+            if(hands[i].size() === 0) {
+                // i won!
+                gamewon = true;
+                winner = i;
+            }
+        }
+
+        if(gamewon) break;
+    }
+
+    // console.log(winner);
 
     const draw = () => {
         db.collection('Cards').doc(gameid).collection('MOVES').add({
@@ -284,7 +386,7 @@ function Board() {
     const istheremove = () => {
         let thereismove = false;
         for (let i = 0; i < 2; i++) { // player
-            for (let j = 0; j < 5; j++) { // card
+            for (let j = 0; j < hands[i].size(); j++) { // card
                 for (let k = 0; k < 2; k++) { // mid
                     if (possible(mids[k].peekTop(), hands[i].peek(j))) {
                         thereismove = true;
@@ -298,7 +400,7 @@ function Board() {
     const istheremovefor = (card) => {
         let thereismove = false;
         for (let i = 0; i < 2; i++) { // player
-            for (let j = 0; j < 5; j++) { // card
+            for (let j = 0; j < hands[i].size(); j++) { // card
                 if (possible(card, hands[i].peek(j))) {
                     thereismove = true;
                 }
@@ -309,48 +411,99 @@ function Board() {
 
     if(boarddata.ready && moves.length > 0) {
 
-        if (!istheremove() && PLAYER === 0) {
-            console.log("Ruh roh, no move");
 
-            let d = new Deck();
-            let c;
-            do {
-                c = d.drawTop();
-            } while(!istheremovefor(c))
-            let c2 = d.drawTop();
-
-            db.collection('Cards').doc(gameid).collection('MOVES').add({
-                TYPE: 'FLIP',
-                CARD1: c.toNumString(),
-                CARD2: c2.toNumString(),
-                TIMESTAMP: Date.now()
-            })
+        if(!boarddata.JOINED1) {
+            return (
+                <div className="waiting">
+                    Wait for someone to join! <br />
+                    The Game ID is {gameid}, or just send them the link <br /> {window.location.href} <br />
+                    Reloading will lose your progress!
+                </div>
+            )
         }
+        if(winner >= 0 || PLAYER === 2) {
+            let focused = PLAYER === 2 ? 0 : PLAYER;
+            return (
+                <div className="board">
 
-        return (
-            <div className="board">
-                <button onClick={() => move(0,0)}>Hello!</button>
+                    <Card card="BACK" top="50%" left="72.5%" /> {/* FLIP DECK */}
+                    <Card card="BACK" top="50%" left="27.5%" /> {/* FLIP DECK */}
+                    {Array(2).fill(0).map((_, i) => (
+                        <Card card={mids[i].peekTop().toString()} top="50%" left={`${42.5 + 15 * i}%`} key={i} />
+                    ))}
 
-                <Card card="BACK" top="50%" left="72.5%" /> {/* FLIP DECK */}
-                <Card card="BACK" top="50%" left="27.5%" /> {/* FLIP DECK */}
-                {Array(2).fill(0).map( (_,i) => (
-                    <Card card={mids[i].peekTop().toString()} top="50%" left={`${42.5 + 15*i}%`} key={i} onClick={() => {
-                        if (selectedcard !== -1) move(selectedcard, i);
-                    }} />
-                ))}
+                    {hands[focused].stack.map((card, i) => (
+                        <Card card={card.toString()} top="80%" left={`${25 + i * 12.5}%`} key={i} />
+                    ))}
 
-                {hands[PLAYER].stack.map((card, i) => (
-                    <Card card={card.toString()} top="80%" left={`${25 + i * 12.5}%`} key={i} selected={i == selectedcard} onClick={() => { (selectedcard !== i) ? setselectedcard(i) : setselectedcard(-1) }} />
-                ))}
+                    {hands[1 - focused].stack.map((card, i) => (
+                        <Card card='BACK' top="20%" left={`${25 + i * 12.5}%`} key={i} />
+                    ))}
 
-                {hands[1-PLAYER].stack.map((card, i) => (
-                    <Card card='BACK' top="20%" left={`${25 + i * 12.5}%`} key={i} />
-                ))}
-            </div>
-        )
+                    <div className="me">PLAYER {focused + 1}</div>
+                    <div className="me-num">{decks[focused].size()}</div>
+                    <div className="them">PLAYER {1 - focused + 1}</div>
+                    <div className="them-num">{decks[1-focused].size()}</div>
+                    <div className="you">{PLAYER >= 2 ? "You are spectating" : `You are Player ${PLAYER+1}`}</div>
+                    {winner >= 0 ? (
+                        <div className="winner">
+                            WINNER: PLAYER {winner+1}
+                        </div>
+                    ) : ''}
+                </div>
+            )
+        } else { 
+
+            if (!istheremove() && PLAYER === 0) {
+                console.log("Ruh roh, no move");
+
+                let d = new Deck();
+                let c;
+                do {
+                    c = d.drawTop();
+                } while (!istheremovefor(c))
+                let c2 = d.drawTop();
+
+                db.collection('Cards').doc(gameid).collection('MOVES').add({
+                    TYPE: 'FLIP',
+                    CARD1: c.toNumString(),
+                    CARD2: c2.toNumString(),
+                    TIMESTAMP: Date.now()
+                })
+            }
+
+            return (
+                <div className="board">
+
+                    <Card card="BACK" top="50%" left="72.5%" /> {/* FLIP DECK */}
+                    <Card card="BACK" top="50%" left="27.5%" /> {/* FLIP DECK */}
+                    {Array(2).fill(0).map((_, i) => (
+                        <Card card={mids[i].peekTop().toString()} top="50%" left={`${42.5 + 15 * i}%`} key={i} onClick={() => {
+                            if (selectedcard !== -1) move(selectedcard, i);
+                        }} />
+                    ))}
+
+                    {hands[PLAYER].stack.map((card, i) => (
+                        <Card card={card.toString()} top="80%" left={`${25 + i * 12.5}%`} key={i} selected={i == selectedcard} onClick={() => { (selectedcard !== i) ? setselectedcard(i) : setselectedcard(-1) }} />
+                    ))}
+
+                    {hands[1 - PLAYER].stack.map((card, i) => (
+                        <Card card='BACK' top="20%" left={`${25 + i * 12.5}%`} key={i} />
+                    ))}
+
+                    <div className="me">PLAYER {PLAYER + 1}</div>
+                    <div className="me-num">{decks[PLAYER].size()}</div>
+                    <div className="them">PLAYER {1 - PLAYER + 1}</div>
+                    <div className="them-num">{decks[1 - PLAYER].size()}</div>
+
+                    <div className="you">{PLAYER >= 2 ? "You are spectating" : `You are Player ${PLAYER + 1}`} <br />
+                    Link to Spectate is {window.location.href}</div>
+                </div>
+            )
+        }
     } else {
         return (
-            <div className="board">Loading...</div>
+            <div className="board speed-reg">Loading...</div>
         )
     }
     

@@ -7,4 +7,93 @@
   box-shadow: 5px 5px 20px 5px black;
   border: solid 3px #ff3434;
 }
+
+.speed-reg {
+  color: white;
+  letter-spacing: 2px;
+  font-size: 20px;
+  font-family: 'Oswald', sans-serif;
+}
+
+.me {
+  color: white;
+  position: absolute;
+  letter-spacing: 2px;
+  font-size: 20px;
+  left: 90%;
+  transform: translate(-50%, -50%);
+  top: 70%;
+  font-family: 'Oswald', sans-serif;
+}
+
+.me-num {
+  color: white;
+  position: absolute;
+  letter-spacing: 2px;
+  font-size: 100px;
+  left: 90%;
+  transform: translate(-50%, -50%);
+  top: 80%;
+  font-family: 'Oswald', sans-serif;
+}
+
+.them {
+  color: white;
+  position: absolute;
+  letter-spacing: 2px;
+  font-size: 20px;
+  left: 90%;
+  transform: translate(-50%, -50%);
+  top: 30%;
+  font-family: 'Oswald', sans-serif;
+}
+
+.them-num {
+  color: white;
+  position: absolute;
+  letter-spacing: 2px;
+  font-size: 100px;
+  left: 90%;
+  transform: translate(-50%, -50%);
+  top: 20%;
+  font-family: 'Oswald', sans-serif;
+}
+
+.winner {
+  color: white;
+  position: absolute;
+  letter-spacing: 2px;
+  font-size: 100px;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  top: 50%;
+  font-family: 'Oswald', sans-serif;
+  background-color: black;
+  padding: 20px;
+  border-radius: 20px;
+}
+
+.you {
+  color: white;
+  position: absolute;
+  letter-spacing: 2px;
+  font-size: 20px;
+  left: 10%;
+  transform: translate(-50%, -50%) rotate(270deg);
+  top: 50%;
+  font-family: 'Oswald', sans-serif;
+  text-align: center;
+}
+
+.waiting {
+  color: white;
+  position: absolute;
+  letter-spacing: 2px;
+  font-size: 20px;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  top: 50%;
+  font-family: 'Oswald', sans-serif;
+}
 /*# sourceMappingURL=speed.css.map */
