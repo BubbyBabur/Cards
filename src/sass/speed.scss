@@ -98,3 +98,49 @@
     top:50%;
     font-family: 'Oswald', sans-serif;
 }
+
+.speed-button {
+    position: absolute;
+    font-family: 'Oswald', sans-serif;
+    width: 15%;
+    height: 10%;
+    font-size: 50px;
+    left: 50%;
+    transform: translate(-50%,-50%);
+    background-color: #222222;
+    border:0;
+    color: white;
+    border-radius: 20px;
+}
+
+.speed-join {
+    top: 70%;
+}
+
+.speed-create {
+    top:85%;
+}
+
+
+.speed-input {
+    position:absolute;
+    // outline: none;
+    left: 50%;
+    width: 70%;
+    font-size: 40px;
+    top: 55%;
+    transform: translate(-50%,-50%);
+    font-family: 'Oswald', sans-serif;
+}
+
+.speed-title {
+    background: linear-gradient(90deg, rgba(214,0,249,1) 0%, rgba(255,52,52,1) 52%, rgba(255,168,0,1) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    color: transparent;
+    position: absolute;
+    top: 30%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+}

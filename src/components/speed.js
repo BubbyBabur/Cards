@@ -19,7 +19,6 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-
 export function Speed(props) {
 
     let code = (props.location.search.replace(/\?/g,''));
@@ -45,19 +44,26 @@ function Selector(props) {
         return (
             <div>
                 <Header />
-                <div className="speed-reg">Loading ya poop!</div>
+                <div className="speed-reg">Loading...</div>
             </div>
         )
     }
     return (
         <div>
             <Header />
+            {Array(4).fill(0).map((_, i) => (
+                <div className="cards-back front" style={{
+                    left: `calc(50% - ${(i - 1.5) * 100}px)`,
+                    top: `calc(30% - ${(i - 1.5) * 100}px)`,
+                }}>SPEED</div>
+            ))}
+            <div className="speed-title front">SPEED</div>
             {a}
-            <button onClick={() => {
+            <button className="speed-join speed-button" onClick={() => {
                 console.log(val);
                 window.location.href = window.location.href.replace(/\?/g, '') + "?" + val;
             }}>JOIN</button>
-            <button onClick={async () => {
+            <button className="speed-create speed-button" onClick={async () => {
                 setLoading(true);
                 const id = await createGame();
                 window.location.href = window.location.href.replace(/\?/g, '') + "?" + id;
@@ -68,7 +74,7 @@ function Selector(props) {
 
 function StupidReactInputHolder({setVal}) {
 
-    return <input onChange={(event) => {
+    return <input className="speed-input" placeholder="Game ID" onChange={(event) => {
         setVal(event.target.value);
     }} />
 }
@@ -308,7 +314,7 @@ function Board({code}) {
     }
 
     if(!connected.CONNECTED) {
-        return <div className="speed-reg">Patience young padawan</div>
+        return <div className="speed-reg">Loading...</div>
     }
 
     console.log( connected);
@@ -417,7 +423,8 @@ function Board({code}) {
                 <div className="waiting">
                     Wait for someone to join! <br />
                     The Game ID is {gameid}, or just send them the link <br /> {window.location.href} <br />
-                    Reloading will lose your progress!
+                    You are Player 1, and once Player 2 joins, the game will instantly start. <br />
+                    You cannot rejoin after leaving or reloading!
                 </div>
             )
         }
