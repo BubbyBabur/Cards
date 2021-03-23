@@ -444,7 +444,7 @@ function Board({code}) {
                     ))}
 
                     {hands[1 - focused].stack.map((card, i) => (
-                        <Card card='BACK' top="20%" left={`${25 + i * 12.5}%`} key={i} />
+                        <Card card={card.toString()} top="20%" left={`${25 + i * 12.5}%`} key={i} />
                     ))}
 
                     <div className="me">PLAYER {focused + 1}</div>
